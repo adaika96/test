@@ -6,6 +6,8 @@ import com.badlogic.gdx.graphics.GL20;
 import com.badlogic.gdx.graphics.Texture;
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
 
+import java.util.Random;
+
 public class FlappyBird extends ApplicationAdapter {
 	SpriteBatch batch;
 	Texture background;
@@ -19,18 +21,39 @@ public class FlappyBird extends ApplicationAdapter {
 	int gameState = 0;
 	float gravity = 2;
 	float gap = 200;
+	float maxTubeoffset;
+	Random randomGenerator;
+
+	float tubeVelocity = 4;
+	int numberOfTube = 4;
+	float[] tubeX = new float[numberOfTube];
+	float[] tubeOffset = new float[numberOfTube];
+	float distanceBetweenTubes;
 
 	
 	@Override
 	public void create () {
 		batch = new SpriteBatch();
         background = new Texture("bg.png");
-        topTube = new Texture("toptube.png");
-        bottomTube = new Texture("bottomtube.png");
+
         birds = new Texture[2];
         birds[0] = new Texture("bird.png");
         birds[1] = new Texture("bird2.png");
         birdY = Gdx.graphics.getHeight() / 2 - birds[1].getHeight() / 2;
+
+
+		topTube = new Texture("toptube.png");
+		bottomTube = new Texture("bottomtube.png");
+		maxTubeoffset = Gdx.graphics.getHeight() / 2 - gap - 100;
+		randomGenerator = new Random();
+		distanceBetweenTubes = Gdx.graphics.getWidth() * 3 / 4;
+
+		for (int i = 0; i < numberOfTube; i++) {
+
+			tubeOffset[i] = (randomGenerator.nextFloat() - 0.5f) * (Gdx.graphics.getHeight() - gap - 200);
+			tubeX[i] = Gdx.graphics.getWidth() / 2 - topTube.getWidth() / 2 + i * distanceBetweenTubes;
+		}
+
 
 	}
 
@@ -42,18 +65,32 @@ public class FlappyBird extends ApplicationAdapter {
 
 		if (gameState != 0) {
 
-
-		    batch.draw(topTube, Gdx.graphics.getWidth() / 2 - topTube.getWidth() / 2, Gdx.graphics.getHeight() / 2 + gap / 2);
-            batch.draw(bottomTube, Gdx.graphics.getWidth() / 2 - bottomTube.getWidth() / 2, Gdx.graphics.getHeight() / 2 - gap / 2 - bottomTube.getHeight());
-
-
 			if (Gdx.input.justTouched()) {
 				velocity = -30;
+
+
 			}
-				if (birdY > 0 || velocity < 0) {
+
+			for (int i = 0; i < numberOfTube; i++) {
+
+				if (tubeX[i] < -topTube.getWidth()) {
+
+					tubeX[i] += numberOfTube * distanceBetweenTubes;
+
+				} else {
+					tubeX[i] = tubeX[i] - tubeVelocity;
+				}
+
+
+				batch.draw(topTube, tubeX[i], Gdx.graphics.getHeight() / 2 + gap / 2 + tubeOffset[i]);
+				batch.draw(bottomTube, tubeX[i], Gdx.graphics.getHeight() / 2 - gap / 2 - bottomTube.getHeight() + tubeOffset[i]);
+			}
+
+
+			if (birdY > 0 || velocity < 0) {
 					velocity = velocity + gravity;
 	    			birdY -= velocity;
-				}
+			}
 
 		} else {
 	    	if (Gdx.input.justTouched()) {
